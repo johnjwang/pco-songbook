@@ -3,6 +3,8 @@ import pandas
 import requests
 import re
 
+from OutputFormatter import Songbook
+
 
 TITLE_MARKER = ' - '
 CHORD_MARKER = r'\[([^]]*)\]'
@@ -66,6 +68,7 @@ def main():
     # TODO: Clarify input method and retrieve as command line argument
     songsCSV = pandas.read_csv('sample/songs5.csv')
 
+    # Retreive and ingest the song data
     songbook = {}
     for song in songsCSV.itertuples():
         ID = int(song[1])
@@ -77,5 +80,11 @@ def main():
             'title': title_data[1],
             'chord_chart': chordproToTwoline(getSongData(ID))
         }
+
+    # Output the songdata
+    book = Songbook()
+    for ID, song in songbook.items():
+        book.print_song(song['key'], song['title'], song['chord_chart'])
+    book.output('songbook.pdf')
 
 main()

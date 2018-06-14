@@ -12,9 +12,6 @@ class ChordLyric:
         self.chords = re.findall(CHORD_MARKER, line)
         self.lyrics = re.sub(CHORD_MARKER, '\n', line).split('\n')
 
-    def getChords(self):
-        return self.chords if len(self.chords) > 1 else []
-
 
 class Song:
 

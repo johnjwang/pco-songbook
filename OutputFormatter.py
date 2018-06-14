@@ -1,7 +1,7 @@
 import fpdf
 
 CHORD_SIZE = 8
-CHORD_FONT = 'Courier'
+CHORD_FONT = 'Arial'
 LYRIC_SIZE = 12
 LYRIC_FONT = 'Arial'
 
@@ -26,26 +26,51 @@ class SongbookPDF(fpdf.FPDF):
         # Title
         self.cell(0, 6, num + ' - ' + title, 0, 1, 'L', 0)
 
-    def print_part(self, lines):
-        for line in lines:
-            self.set_font(CHORD_FONT, '', CHORD_SIZE)
-            self.set_xy(self.l_margin, self.get_y() + self.font_size)
-            for i in range(len(line.chords)):
-                # Print out lyric in place
-                if line.lyrics[i]:
-                    self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
-                    self.cell(self.get_string_width(
-                        line.lyrics[i]), self.font_size, line.lyrics[i])
+    def get_chord_width(self, chord):
+        self.set_font(CHORD_FONT, '', CHORD_SIZE)
+        return self.get_string_width(chord)
 
-                # Print out chord above lyric
+    def get_lyric_width(self, lyric):
+        self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+        return self.get_string_width(lyric)
+
+    def print_part(self, lines):
+        for l in lines:
+            self.set_x(self.l_margin)
+
+            # Print out first lyric segment, may be empty
+            if l.lyrics[0]:
+                self.set_font(CHORD_FONT, '', CHORD_SIZE)
+                self.set_y(self.get_y() + self.font_size)
+
+                self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+                self.cell(self.get_string_width(
+                    l.lyrics[0]), self.font_size, l.lyrics[0])
+
                 self.set_font(CHORD_FONT, '', CHORD_SIZE)
                 self.set_xy(self.get_x(), self.get_y() - self.font_size)
+
+            x_next = self.get_x()
+            for i in range(len(l.chords)):
+                self.set_x(x_next)
+
+                self.set_font(CHORD_FONT, '', CHORD_SIZE)
+                chord_x = self.get_x() + self.get_string_width(l.chords[i])
                 self.cell(self.get_string_width(
-                    line.chords[i]), self.font_size, line.chords[i], ln=2)
+                    l.chords[i]), self.font_size, l.chords[i], ln=2)
+
+                self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+                lyric_x = self.get_x() + self.get_string_width(l.lyrics[i + 1])
+                self.cell(self.get_string_width(
+                    l.lyrics[i + 1]), self.font_size, l.lyrics[i + 1])
+
+                self.set_font(CHORD_FONT, '', CHORD_SIZE)
+                self.set_y(self.get_y() - self.font_size)
+
+                x_next = lyric_x if lyric_x > chord_x else chord_x
+
             self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
-            self.cell(self.get_string_width(
-                line.lyrics[-1]), self.font_size, line.lyrics[-1], ln=1)
-        self.ln()
+            self.ln(2 * self.font_size)
 
     def print_song(self, song):
         self.add_page()

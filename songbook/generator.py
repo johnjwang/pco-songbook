@@ -2,7 +2,7 @@ import json
 import pandas
 import requests
 
-from OutputFormatter import SongbookPDF
+import output
 from song import Song
 
 
@@ -20,10 +20,8 @@ def getSongData(ID):
 
     return songObj["data"][0]["attributes"]["chord_chart"]
 
-
-def main():
-    # TODO: Clarify input method and retrieve as command line argument
-    songsCSV = pandas.read_csv('sample/songs5.csv')
+def generate_pdf(infilename, outfilename):
+    songsCSV = pandas.read_csv(infilename)
 
     # Retreive and ingest the song data
     songbook = {}
@@ -35,9 +33,7 @@ def main():
         songbook[ID] = Song(title_data[0], title_data[1], getSongData(ID))
 
     # Output the songdata
-    book = SongbookPDF()
+    book = output.SongbookPDF()
     for ID, song in songbook.items():
         book.print_song(song)
-    book.output('songbook.pdf')
-
-main()
+    book.output(outfilename)

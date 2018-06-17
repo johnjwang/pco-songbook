@@ -24,11 +24,11 @@ class Song:
     def chordpro_to_lines(chordpro):
         sections = chordpro.split('\r\n\r\n')
 
-        chord_data = {}
+        chord_data = []
         for section in sections:
             lines = section.split('\r\n')
             part = lines[0]
             chord_lyrics = [ChordLyric(line) for line in lines[1:]]
-            chord_data[part] = chord_lyrics
+            chord_data.append((part, chord_lyrics))
 
         return chord_data

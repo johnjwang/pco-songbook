@@ -119,7 +119,7 @@ class SongbookPDF(fpdf.FPDF):
 
         self.print_title(song.key, song.title)
         indent_count = 0
-        for part, lines in song.chord_chart.items():
+        for part, lines in song.chord_chart:
             indent = start_xy[0]
             if part.lower() in INDENT_PARTS:
                 indent_count += 1

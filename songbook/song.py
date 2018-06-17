@@ -18,10 +18,10 @@ class Song:
     def __init__(self, key, title, chordpro):
         self.key = key
         self.title = title
-        self.chord_chart = Song.chordproToLines(chordpro)
+        self.chord_chart = Song.chordpro_to_lines(chordpro)
 
     @staticmethod
-    def chordproToLines(chordpro):
+    def chordpro_to_lines(chordpro):
         sections = chordpro.split('\r\n\r\n')
 
         chord_data = {}

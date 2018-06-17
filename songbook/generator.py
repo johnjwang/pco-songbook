@@ -24,16 +24,16 @@ def generate_pdf(infilename, outfilename):
     songs_csv = pandas.read_csv(infilename)
 
     # Retreive and ingest the song data
-    songbook = {}
+    songs = []
     for song in songs_csv.itertuples():
         ID = int(song[1])
         title_data = str(song[2]).split(TITLE_MARKER)
 
         # TODO: Get publishing company somehow
-        songbook[ID] = Song(title_data[0], title_data[1], get_song_data(ID))
+        songs.append(Song(title_data[0], title_data[1], get_song_data(ID)))
 
     # Output the songdata
     book = output.SongbookPDF()
-    for ID, song in songbook.items():
+    for song in songs:
         book.print_song(song)
     book.output(outfilename)

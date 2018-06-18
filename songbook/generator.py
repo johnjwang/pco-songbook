@@ -1,22 +1,10 @@
 from __future__ import print_function
 import csv
-import json
-import requests
 
+import api
 import output
-from song import Song
+import song
 
-
-def get_song_data(ID):
-    # TODO: Hide these keys somewhere
-    head = {
-        "Authorization": "Basic MmVhYTc2NTVkYzExZDFjNzFhODI5NmQ2ODkyMmE0MTAwOTkxZDQ2NmNjYzM1ZmJhOWZjOGMxZWQyZDI5MWUxZjphMmZhZWEyNDc1MmZhMTRjYzEzM2UzNjRlMmFjM2IzMzEyYmI5OWEzYWY0ZTEyNTEzODg2NzJjZTQ4ZTNlZmYy"
-    }
-    song_req = requests.get(
-        'https://api.planningcenteronline.com/services/v2/songs/{0}/arrangements'.format(ID), headers=head)
-    song_obj = json.loads(song_req.text)
-
-    return song_obj["data"][0]["attributes"]["chord_chart"]
 
 def import_csv(infilename):
     songs = []
@@ -31,12 +19,12 @@ def import_csv(infilename):
             ID = int(row[0])
             key = None
             title = row[1]
-            lyrics = row[15] if row[15] else get_song_data(ID)
+            lyrics = row[15] if row[15] else api.get_song_lyrics(ID)
             if lyrics is None:
                 print("Skipping song with no lyrics:", title)
                 continue
 
-            songs.append(Song(key, title, lyrics))
+            songs.append(song.Song(key, title, lyrics))
 
     return songs
 

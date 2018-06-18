@@ -48,9 +48,9 @@ class SongbookPDF(fpdf.FPDF):
         else:
             raise ValueError('Invalid quadrant: ' + str(self.quadrant))
 
-    def print_title(self, num, title):
+    def print_title(self, title):
         self.set_font('Arial', 'B', 12)
-        self.cell(0, 6, num + ' - ' + title, ln=2)
+        self.cell(0, 6, title, ln=2)
 
         self.set_fill_color(173, 216, 230)
         self.cell(self.w / 3, self.cho_height / 3, '', ln=2, fill=True)
@@ -117,7 +117,7 @@ class SongbookPDF(fpdf.FPDF):
         start_xy = self.get_start_point()
         self.set_xy(start_xy[0], start_xy[1])
 
-        self.print_title(song.key, song.title)
+        self.print_title(song.title)
         indent_count = 0
         for part, lines in song.chord_chart:
             indent = start_xy[0]

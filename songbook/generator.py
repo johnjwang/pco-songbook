@@ -6,9 +6,6 @@ import output
 from song import Song
 
 
-TITLE_MARKER = ' - '
-
-
 def get_song_data(ID):
     # TODO: Hide these keys somewhere
     head = {
@@ -31,15 +28,8 @@ def import_csv(infilename):
 
         for row in csvreader:
             ID = int(row[0])
-            title_data = str(row[1]).split(TITLE_MARKER)
-            # Handle titles that are not in format of "A000 - Title"
-            if len(title_data) == 2:
-                key = title_data[0]
-                title = title_data[1]
-            else:
-                key = ''
-                title = title_data[0]
-            # Try getting lyrics from CSV before calling API
+            key = None
+            title = row[1]
             lyrics = row[15] if row[15] else get_song_data(ID)
 
             songs.append(Song(key, title, lyrics))

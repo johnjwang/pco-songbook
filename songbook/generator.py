@@ -1,5 +1,5 @@
+import csv
 import json
-import pandas
 import requests
 
 import output
@@ -20,17 +20,35 @@ def get_song_data(ID):
 
     return song_obj["data"][0]["attributes"]["chord_chart"]
 
-def generate_pdf(infilename, outfilename):
-    songs_csv = pandas.read_csv(infilename)
-
-    # Retreive and ingest the song data
+def import_csv(infilename):
     songs = []
-    for song in songs_csv.itertuples():
-        ID = int(song[1])
-        title_data = str(song[2]).split(TITLE_MARKER)
 
-        # TODO: Get publishing company somehow
-        songs.append(Song(title_data[0], title_data[1], get_song_data(ID)))
+    with open(infilename, 'rb') as csvfile:
+        csvreader = csv.reader(csvfile)
+
+        # Skip first row header
+        csvreader.next()
+
+        for row in csvreader:
+            ID = int(row[0])
+            title_data = str(row[1]).split(TITLE_MARKER)
+            # Handle titles that are not in format of "A000 - Title"
+            if len(title_data) == 2:
+                key = title_data[0]
+                title = title_data[1]
+            else:
+                key = ''
+                title = title_data[0]
+            # Try getting lyrics from CSV before calling API
+            lyrics = row[15] if row[15] else get_song_data(ID)
+
+            songs.append(Song(key, title, lyrics))
+
+    return songs
+
+def generate_pdf(infilename, outfilename):
+    # Retreive and ingest the song data
+    songs = import_csv(infilename)
 
     # Output the songdata
     book = output.SongbookPDF()

@@ -15,10 +15,14 @@ class ChordLyric:
 
 class Song:
 
-    def __init__(self, key, title, chordpro):
-        self.key = key
+    def __init__(self, pco_id, title, chordpro):
+        self.pco_id = pco_id
         self.title = title
         self.chord_chart = Song.chordpro_to_lines(chordpro)
+        self.key = None
+        self.admin = None
+        self.author = None
+        self.copyright = None
 
     @staticmethod
     def chordpro_to_lines(chordpro):

@@ -22,9 +22,9 @@ def get_all_song_metadata():
         req = requests.get(url, headers={'Authorization': API_KEY})
         response = json.loads(req.text)
 
-        for metadatum in response['data']:
-            ID = int(metadatum['id'])
-            metadata[ID] = metadatum
+        for song in response['data']:
+            ID = int(song['id'])
+            metadata[ID] = song['attributes']
 
         # The API can only fetch 100 records at a time
         # Is there a next page to load?

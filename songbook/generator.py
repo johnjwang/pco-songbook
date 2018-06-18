@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv
 import json
 import requests
@@ -31,6 +32,9 @@ def import_csv(infilename):
             key = None
             title = row[1]
             lyrics = row[15] if row[15] else get_song_data(ID)
+            if lyrics is None:
+                print("Skipping song with no lyrics:", title)
+                continue
 
             songs.append(Song(key, title, lyrics))
 

@@ -20,7 +20,7 @@ def import_csv(infilename):
             title = row[1]
             lyrics = row[15] if row[15] else api.get_song_lyrics(ID)
             if lyrics is None:
-                print("Skipping song with no lyrics:", title)
+                print('Skipping song with no lyrics:', title)
                 continue
 
             songs.append(song.Song(ID, title, lyrics))
@@ -29,13 +29,15 @@ def import_csv(infilename):
 
 def generate_pdf(infilename, outfilename):
     # Retreive and ingest the song data
+    print('Importing songs...')
     songs = import_csv(infilename)
 
     # Attach metadata to songs
+    print('Importing song metadata...')
     metadata = api.get_all_song_metadata()
     for song in songs:
         if song.pco_id not in metadata:
-            print("Song metadata not found:", song.title)
+            print('Song metadata not found:', song.title)
             continue
         datum = metadata[song.pco_id]
         song.admin = datum['admin']
@@ -43,7 +45,9 @@ def generate_pdf(infilename, outfilename):
         song.copyright = datum['copyright']
 
     # Output the songdata
+    print('Generating output...')
     book = output.SongbookPDF()
     for song in songs:
         book.print_song(song)
     book.output(outfilename)
+    print('Wrote output to', outfilename)

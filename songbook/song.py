@@ -1,9 +1,23 @@
 import re
 
 CHORD_MARKER = r'\[([^]]*)\]'
-
+VALID_PARTS = [
+    'intro',
+    'verse',
+    'pre-chorus',
+    'chorus',
+    'bridge',
+    'tag',
+    'interlude',
+    'instrumental'
+]
+IGNORE_LINES = [
+    'column_break',
+]
 
 # A single line of lyrics and chords in a song
+
+
 class ChordLyric:
 
     # Assuming monospaced font to match width of chords and lyrics
@@ -24,15 +38,37 @@ class Song:
         self.author = None
         self.copyright = None
 
+    def get_lyric_lines(self):
+        lines = 0
+        for chord_data in self.chord_chart:
+            lines += len(chord_data[1])
+        return lines
+
+    def get_chord_lines(self):
+        lines = 0
+        for chord_data in self.chord_chart:
+            for line in chord_data[1]:
+                if line.chords:
+                    lines += 1
+        return lines
+
     @staticmethod
     def chordpro_to_lines(chordpro):
-        sections = chordpro.split('\r\n\r\n')
+        lines = chordpro.splitlines()
 
         chord_data = []
-        for section in sections:
-            lines = section.split('\r\n')
-            part = lines[0]
-            chord_lyrics = [ChordLyric(line) for line in lines[1:]]
-            chord_data.append((part, chord_lyrics))
+        part_data = ['', []]
+        for i in range(len(lines)):
+            if lines[i].isspace() or not lines[i]:
+                continue
+
+            if lines[i].split(' ')[0].lower() in VALID_PARTS:
+                if part_data[0]:
+                    chord_data.append((part_data[0], part_data[1]))
+                    part_data[1] = []
+                part_data[0] = lines[i]
+            elif any(tag not in lines[i].lower() for tag in IGNORE_LINES):
+                part_data[1].append(ChordLyric(lines[i]))
+        chord_data.append((part_data[0], part_data[1]))
 
         return chord_data

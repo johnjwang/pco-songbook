@@ -6,7 +6,7 @@ TITLE_SIZE = 12
 TITLE_FONT = 'Arial'
 CHORD_SIZE = 8
 CHORD_FONT = 'Arial'
-LYRIC_SIZE = 12
+LYRIC_SIZE = 11
 LYRIC_FONT = 'Arial'
 FOOTER_SIZE = 8
 FOOTER_FONT = 'Arial'
@@ -47,12 +47,13 @@ class SongbookPDF(fpdf.FPDF):
         else:
             raise ValueError('Invalid quadrant: ' + str(self.quadrant))
 
-    def get_overflow(self, song):
-        max_height = (self.h / 2) - MARGIN_SIZE
+    def get_overflow(self, song, lyric_height):
         song_height = (song.get_chord_lines() * CHORD_SIZE) + \
-            (song.get_lyric_lines() * LYRIC_SIZE) + \
+            (song.get_lyric_lines() * lyric_height) + \
             ((len(song.chord_chart) - 1) * (CHORD_SIZE))
 
+        max_height = (self.h / 2) - MARGIN_SIZE
+        print(song.title + ' | overflow -> ' + str(song_height > max_height))
         return song_height > max_height
 
     def get_song_size(self, song):
@@ -155,7 +156,8 @@ class SongbookPDF(fpdf.FPDF):
     def print_songbook(self, songs):
         # Assign songs to locations
         for song in songs:
-            self.organizer.insert_song(song, self.get_overflow(song))
+            size = self.get_song_size(song)
+            self.organizer.insert_song(song, self.get_overflow(song, size))
 
         # Print songs in respective locations
         for page in self.organizer.pages:

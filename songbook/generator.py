@@ -47,7 +47,6 @@ def generate_pdf(infilename, outfilename):
     # Output the songdata
     print('Generating output...')
     book = output.SongbookPDF()
-    for song in songs:
-        book.print_song(song)
+    book.print_songbook(songs)
     book.output(outfilename)
     print('Wrote output to', outfilename)

@@ -29,3 +29,8 @@ These instructions will get you a copy of the project up and running on your loc
 - [ ] Hide the API key somehow
 - [ ] Get publishing company for each song somehow
 - [ ] Clarify input method (e.g. .csv, commandline, etc.)
+
+## Formatting Issues
+- One line of lyrics is too long (shrink font or overflow)
+- Too many lyrics (overflow or shrink font)
+- Unrecognized characters create strange output 

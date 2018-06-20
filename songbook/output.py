@@ -6,7 +6,7 @@ TITLE_SIZE = 12
 TITLE_FONT = 'Arial'
 CHORD_SIZE = 8
 CHORD_FONT = 'Arial'
-LYRIC_SIZE = 10
+LYRIC_SIZE = 12
 LYRIC_FONT = 'Arial'
 FOOTER_SIZE = 8
 FOOTER_FONT = 'Arial'
@@ -48,14 +48,36 @@ class SongbookPDF(fpdf.FPDF):
             raise ValueError('Invalid quadrant: ' + str(self.quadrant))
 
     def get_overflow(self, song):
-        max_height = (self.h / 2) - self.t_margin
-        max_width = (self.w / 2) - self.l_margin
-
+        max_height = (self.h / 2) - MARGIN_SIZE
         song_height = (song.get_chord_lines() * CHORD_SIZE) + \
             (song.get_lyric_lines() * LYRIC_SIZE) + \
             ((len(song.chord_chart) - 1) * (CHORD_SIZE))
 
         return song_height > max_height
+
+    def get_song_size(self, song):
+        self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+
+        largest_width = 0
+        index_count = 0
+        for part, chord_lyrics in song.chord_chart:
+            indenting = False
+            if any(tag in part.lower() for tag in INDENT_PARTS):
+                index_count += 1
+                indenting = True
+
+            for line in chord_lyrics:
+                lyrics_size = self.get_string_width(''.join(line.lyrics))
+                if indenting:
+                    lyrics_size += (index_count * INDENT_SIZE)
+                if lyrics_size > largest_width:
+                    largest_width = lyrics_size
+
+        max_width = (self.w / 2) - MARGIN_SIZE
+        if largest_width > max_width:
+            return LYRIC_SIZE * (max_width / largest_width)
+
+        return LYRIC_SIZE
 
     def print_title(self, title):
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
@@ -64,10 +86,10 @@ class SongbookPDF(fpdf.FPDF):
         self.set_fill_color(173, 216, 230)
         self.cell(self.w / 2.5, CHORD_SIZE / 4, '', ln=2, fill=True)
 
-    def print_line(self, line):
+    def print_line(self, line, size):
         # No chords, only lyrics
         if not line.chords:
-            self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+            self.set_font(LYRIC_FONT, '', size)
             self.cell(self.get_string_width(
                 line.lyrics[0]), self.font_size, line.lyrics[0], ln=2)
             return
@@ -76,7 +98,7 @@ class SongbookPDF(fpdf.FPDF):
         if line.lyrics[0]:
             self.set_xy(self.get_x(), self.get_y() + CHORD_SIZE)
 
-            self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+            self.set_font(LYRIC_FONT, '', size)
             self.cell(self.get_string_width(
                 line.lyrics[0]), self.font_size, line.lyrics[0])
 
@@ -93,7 +115,7 @@ class SongbookPDF(fpdf.FPDF):
             self.cell(self.get_string_width(
                 line.chords[i]), self.font_size, line.chords[i], ln=2)
 
-            self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+            self.set_font(LYRIC_FONT, '', size)
             lyric_x = self.get_x() + self.get_string_width(line.lyrics[i + 1])
             self.cell(self.get_string_width(
                 line.lyrics[i + 1]), self.font_size, line.lyrics[i + 1])
@@ -101,13 +123,13 @@ class SongbookPDF(fpdf.FPDF):
             self.set_xy(self.get_x(), self.get_y() - CHORD_SIZE)
             x_next = lyric_x if lyric_x > chord_x else chord_x
 
-        self.ln(CHORD_SIZE + LYRIC_SIZE)
+        self.ln(CHORD_SIZE + size)
 
-    def print_part(self, start, part, lines):
+    def print_part(self, start, part, lines, size):
         if lines:
             for line in lines:
                 self.set_x(start)
-                self.print_line(line)
+                self.print_line(line, size)
             self.ln(CHORD_SIZE)
         else:  # Only part label (e.g. Intro)
             self.set_x(start)
@@ -119,14 +141,16 @@ class SongbookPDF(fpdf.FPDF):
         self.set_xy(x_start, y_start)
 
         self.print_title(song.title)
+        size = self.get_song_size(song)
+
         indents = 0
         for part, lines in song.chord_chart:
             if any(tag in part.lower() for tag in INDENT_PARTS):
                 indents += 1
                 self.print_part(
-                    x_start + (indents * INDENT_SIZE), part, lines)
+                    x_start + (indents * INDENT_SIZE), part, lines, size)
             else:
-                self.print_part(x_start, part, lines)
+                self.print_part(x_start, part, lines, size)
 
     def print_songbook(self, songs):
         # Assign songs to locations

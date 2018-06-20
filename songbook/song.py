@@ -57,18 +57,19 @@ class Song:
         lines = chordpro.splitlines()
 
         chord_data = []
-        part_data = ['', []]
+        label = ''
+        chord_lyrics = []
         for i in range(len(lines)):
             if lines[i].isspace() or not lines[i]:
                 continue
 
             if lines[i].split(' ')[0].lower() in VALID_PARTS:
-                if part_data[0]:
-                    chord_data.append((part_data[0], part_data[1]))
-                    part_data[1] = []
-                part_data[0] = lines[i]
+                if label:
+                    chord_data.append((label, chord_lyrics))
+                    chord_lyrics = []
+                label = lines[i]
             elif any(tag not in lines[i].lower() for tag in IGNORE_LINES):
-                part_data[1].append(ChordLyric(lines[i]))
-        chord_data.append((part_data[0], part_data[1]))
+                chord_lyrics.append(ChordLyric(lines[i]))
+        chord_data.append((label, chord_lyrics))
 
         return chord_data

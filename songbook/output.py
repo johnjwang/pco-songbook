@@ -11,8 +11,8 @@ LYRIC_FONT = 'Arial'
 FOOTER_SIZE = 8
 FOOTER_FONT = 'Arial'
 
-MARGIN_SIZE = 8
-INDENT_SIZE = 4
+MARGIN_SIZE = 22.6772
+INDENT_SIZE = 8.50394
 INDENT_PARTS = [
     'pre-chorus',
     'chorus',
@@ -23,13 +23,7 @@ INDENT_PARTS = [
 class SongbookPDF(fpdf.FPDF):
 
     def __init__(self):
-        super(SongbookPDF, self).__init__()
-
-        self.set_font(CHORD_FONT, '', CHORD_SIZE)
-        self.cho_height = self.font_size
-
-        self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
-        self.lyr_height = self.font_size
+        super(SongbookPDF, self).__init__(unit='pt')
 
         self.set_margins(MARGIN_SIZE, MARGIN_SIZE, MARGIN_SIZE)
         self.set_auto_page_break(False, MARGIN_SIZE)
@@ -54,16 +48,21 @@ class SongbookPDF(fpdf.FPDF):
             raise ValueError('Invalid quadrant: ' + str(self.quadrant))
 
     def get_overflow(self, song):
-        # TODO: Determine if song is too long
-        return False
+        max_height = (self.h / 2) - self.t_margin
+        max_width = (self.w / 2) - self.l_margin
 
+        song_height = (song.get_chord_lines() * CHORD_SIZE) + \
+            (song.get_lyric_lines() * LYRIC_SIZE) + \
+            ((len(song.chord_chart) - 1) * (CHORD_SIZE))
+
+        return song_height > max_height
 
     def print_title(self, title):
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
         self.cell(self.get_string_width(title), self.font_size, title, ln=2)
 
         self.set_fill_color(173, 216, 230)
-        self.cell(self.w / 2.5, self.cho_height / 2.5, '', ln=2, fill=True)
+        self.cell(self.w / 2.5, CHORD_SIZE / 4, '', ln=2, fill=True)
 
     def print_line(self, line):
         # No chords, only lyrics
@@ -75,20 +74,20 @@ class SongbookPDF(fpdf.FPDF):
 
         # Print out first lyric segment, may be empty
         if line.lyrics[0]:
-            self.set_xy(self.get_x(), self.get_y() + self.cho_height)
+            self.set_xy(self.get_x(), self.get_y() + CHORD_SIZE)
 
             self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
             self.cell(self.get_string_width(
                 line.lyrics[0]), self.font_size, line.lyrics[0])
 
-            self.set_xy(self.get_x(), self.get_y() - self.cho_height)
+            self.set_xy(self.get_x(), self.get_y() - CHORD_SIZE)
 
         # Print remaining chords and lyrics
         x_next = self.get_x()
         for i in range(len(line.chords)):
             self.set_x(x_next)
 
-            self.set_font(CHORD_FONT, '', CHORD_SIZE)
+            self.set_font(CHORD_FONT, 'B', CHORD_SIZE)
             chord_x = self.get_x() + \
                 self.get_string_width(line.chords[i] + ' ')
             self.cell(self.get_string_width(
@@ -99,17 +98,17 @@ class SongbookPDF(fpdf.FPDF):
             self.cell(self.get_string_width(
                 line.lyrics[i + 1]), self.font_size, line.lyrics[i + 1])
 
-            self.set_xy(self.get_x(), self.get_y() - self.cho_height)
+            self.set_xy(self.get_x(), self.get_y() - CHORD_SIZE)
             x_next = lyric_x if lyric_x > chord_x else chord_x
 
-        self.ln(self.cho_height + self.lyr_height)
+        self.ln(CHORD_SIZE + LYRIC_SIZE)
 
     def print_part(self, start, part, lines):
         if lines:
             for line in lines:
                 self.set_x(start)
                 self.print_line(line)
-            self.ln(self.cho_height)
+            self.ln(CHORD_SIZE)
         else:  # Only part label (e.g. Intro)
             self.set_x(start)
             self.set_font(CHORD_FONT, '', CHORD_SIZE)
@@ -130,9 +129,11 @@ class SongbookPDF(fpdf.FPDF):
                 self.print_part(x_start, part, lines)
 
     def print_songbook(self, songs):
+        # Assign songs to locations
         for song in songs:
             self.organizer.insert_song(song, self.get_overflow(song))
 
+        # Print songs in respective locations
         for page in self.organizer.pages:
             self.add_page()
             for i in range(4):

@@ -29,11 +29,12 @@ class SongbookOrganizer:
                     return quad
                 re_add.append(quad)
 
-            self.vacant.extendleft(re_add[::-1])
             self.add_page()
 
             quad = self.vacant.popleft()
             self.vacant.remove((quad[0], quad[1] + 2))
+            
+            self.vacant.extendleft(re_add[::-1])
             return quad
         else:
             if not len(self.vacant):

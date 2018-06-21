@@ -1,7 +1,6 @@
 import fpdf
 import layout
 
-
 TITLE_SIZE = 12
 TITLE_FONT = 'Arial'
 CHORD_SIZE = 8
@@ -12,6 +11,7 @@ FOOTER_SIZE = 8
 FOOTER_FONT = 'Arial'
 
 MARGIN_SIZE = 22.6772
+INNER_BORDER = 11.3386
 INDENT_SIZE = 8.50394
 INDENT_PARTS = [
     'pre-chorus',
@@ -47,19 +47,11 @@ class SongbookPDF(fpdf.FPDF):
         else:
             raise ValueError('Invalid quadrant: ' + str(self.quadrant))
 
-    def get_overflow(self, song, lyric_height):
-        song_height = (song.get_chord_lines() * CHORD_SIZE) + \
-            (song.get_lyric_lines() * lyric_height) + \
-            ((len(song.chord_chart) - 1) * (CHORD_SIZE))
-
-        max_height = (self.h / 2) - MARGIN_SIZE
-        print(song.title + ' | overflow -> ' + str(song_height > max_height))
-        return song_height > max_height
-
-    def get_song_size(self, song):
+    def get_size_and_overflow(self, song):
         self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
 
-        largest_width = 0
+        # Adjust for song width
+        song_width = 0
         index_count = 0
         for part, chord_lyrics in song.chord_chart:
             indenting = False
@@ -71,14 +63,27 @@ class SongbookPDF(fpdf.FPDF):
                 lyrics_size = self.get_string_width(''.join(line.lyrics))
                 if indenting:
                     lyrics_size += (index_count * INDENT_SIZE)
-                if lyrics_size > largest_width:
-                    largest_width = lyrics_size
+                if lyrics_size > song_width:
+                    song_width = lyrics_size
 
-        max_width = (self.w / 2) - MARGIN_SIZE
-        if largest_width > max_width:
-            return LYRIC_SIZE * (max_width / largest_width)
+        size = LYRIC_SIZE
+        max_width = (self.w / 2) - MARGIN_SIZE - INNER_BORDER
+        if song_width > max_width:
+            size *= max_width / song_width
 
-        return LYRIC_SIZE
+        # Determine overflow and adjust for song height
+        song_height = (song.get_chord_lines() * CHORD_SIZE) + \
+            (song.get_lyric_lines() * size) + \
+            ((len(song.chord_chart) - 1) * (CHORD_SIZE))
+
+        half_height = (self.h / 2) - MARGIN_SIZE - INNER_BORDER
+        overflow = song_height > half_height
+
+        max_height = self.h - (2 * MARGIN_SIZE) - INNER_BORDER
+        if overflow and song_height > max_height:
+            size *= max_height / song_height
+
+        return (size, overflow)
 
     def print_title(self, title):
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
@@ -137,13 +142,11 @@ class SongbookPDF(fpdf.FPDF):
             self.set_font(CHORD_FONT, '', CHORD_SIZE)
             self.cell(self.get_string_width(part), self.font_size, part, ln=2)
 
-    def print_song(self, song, quadrant):
+    def print_song(self, song, quadrant, size):
         x_start, y_start = self.get_start_point(quadrant)
         self.set_xy(x_start, y_start)
 
         self.print_title(song.title)
-        size = self.get_song_size(song)
-
         indents = 0
         for part, lines in song.chord_chart:
             if any(tag in part.lower() for tag in INDENT_PARTS):
@@ -155,13 +158,15 @@ class SongbookPDF(fpdf.FPDF):
 
     def print_songbook(self, songs):
         # Assign songs to locations
+        song_sizes = {}
         for song in songs:
-            size = self.get_song_size(song)
-            self.organizer.insert_song(song, self.get_overflow(song, size))
+            size, overflow = self.get_size_and_overflow(song)
+            song_sizes[song.pco_id] = size
+            self.organizer.insert_song(song, overflow)
 
         # Print songs in respective locations
         for page in self.organizer.pages:
             self.add_page()
             for i in range(4):
                 if page[i]:
-                    self.print_song(page[i], i)
+                    self.print_song(page[i], i, song_sizes[page[i].pco_id])

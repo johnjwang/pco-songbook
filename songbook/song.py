@@ -9,7 +9,8 @@ VALID_PARTS = [
     'bridge',
     'tag',
     'interlude',
-    'instrumental'
+    'instrumental',
+    'outro'
 ]
 IGNORE_LINES = [
     'column_break',

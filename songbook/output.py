@@ -73,8 +73,7 @@ class SongbookPDF(fpdf.FPDF):
 
         # Determine overflow and adjust for song height
         song_height = (song.get_chord_lines() * CHORD_SIZE) + \
-            (song.get_lyric_lines() * size) + \
-            ((len(song.chord_chart) - 1) * (CHORD_SIZE))
+            (song.get_lyric_lines() * size)
 
         half_height = (self.h / 2) - MARGIN_SIZE - INNER_BORDER
         overflow = song_height > half_height
@@ -98,6 +97,14 @@ class SongbookPDF(fpdf.FPDF):
             self.set_font(LYRIC_FONT, '', size)
             self.cell(self.get_string_width(
                 line.lyrics[0]), self.font_size, line.lyrics[0], ln=2)
+            return
+
+        # Chords exist, but no lyrics
+        if not ''.join(line.lyrics).strip():
+            self.set_font(CHORD_FONT, 'B', CHORD_SIZE)
+            for chord in line.chords:
+                self.cell(self.get_string_width(chord + ' '), self.font_size, chord + ' ')
+            self.ln(CHORD_SIZE)
             return
 
         # Print out first lyric segment, may be empty
@@ -132,15 +139,14 @@ class SongbookPDF(fpdf.FPDF):
         self.ln(CHORD_SIZE + size)
 
     def print_part(self, start, part, lines, size):
-        if lines:
+        if all((line.is_empty() for line in lines)):
+            self.set_x(start)
+            self.set_font(CHORD_FONT, 'B', CHORD_SIZE)
+            self.cell(self.get_string_width(part), self.font_size, part, ln=2)
+        else: 
             for line in lines:
                 self.set_x(start)
                 self.print_line(line, size)
-            self.ln(CHORD_SIZE)
-        else:  # Only part label (e.g. Intro)
-            self.set_x(start)
-            self.set_font(CHORD_FONT, '', CHORD_SIZE)
-            self.cell(self.get_string_width(part), self.font_size, part, ln=2)
 
     def print_song(self, song, quadrant, size):
         x_start, y_start = self.get_start_point(quadrant)

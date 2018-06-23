@@ -27,6 +27,9 @@ class ChordLyric:
         self.chords = re.findall(CHORD_MARKER, line)
         self.lyrics = re.sub(CHORD_MARKER, '\n', line).split('\n')
 
+    def is_empty(self):
+        return not self.chords and self.lyrics == ['']
+
 
 class Song:
 
@@ -41,14 +44,14 @@ class Song:
 
     def get_lyric_lines(self):
         lines = 0
-        for chord_data in self.chord_chart:
-            lines += len(chord_data[1])
+        for part, lyrics in self.chord_chart:
+            lines += len(lyrics)
         return lines
 
     def get_chord_lines(self):
         lines = 0
-        for chord_data in self.chord_chart:
-            for line in chord_data[1]:
+        for party, chord_lyrics in self.chord_chart:
+            for line in chord_lyrics:
                 if line.chords:
                     lines += 1
         return lines
@@ -61,13 +64,10 @@ class Song:
         label = ''
         chord_lyrics = []
         for i in range(len(lines)):
-            if lines[i].isspace() or not lines[i]:
-                continue
-
             if lines[i].split(' ')[0].lower() in VALID_PARTS:
-                if label:
+                if chord_lyrics or label:
                     chord_data.append((label, chord_lyrics))
-                    chord_lyrics = []
+                chord_lyrics = []
                 label = lines[i]
             elif any(tag not in lines[i].lower() for tag in IGNORE_LINES):
                 chord_lyrics.append(ChordLyric(lines[i]))

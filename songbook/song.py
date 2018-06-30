@@ -72,6 +72,7 @@ class Song:
         label = ''
         chord_lyrics = []
         for line in lines:
+            line = ''.join((c for c in line if ord(c) < 128))
             if Song.contains_label(line.strip()):
                 if chord_lyrics or label:
                     chord_data.append((label, chord_lyrics))

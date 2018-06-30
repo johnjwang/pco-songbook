@@ -15,6 +15,7 @@ class SongbookOrganizer:
 
     def add_page(self):
         self.pages.append(dict(self.layout))
+        self.vacant.clear()
         for i in range(len(self.layout)):
             self.vacant.append((len(self.pages) - 1, i))  # (pg, quad)
 
@@ -33,8 +34,6 @@ class SongbookOrganizer:
 
             quad = self.vacant.popleft()
             self.vacant.remove((quad[0], quad[1] + 2))
-            
-            self.vacant.extendleft(re_add[::-1])
             return quad
         else:
             if not len(self.vacant):

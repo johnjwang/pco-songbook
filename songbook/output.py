@@ -108,7 +108,14 @@ class SongbookPDF(fpdf.FPDF):
         return (size, overflow)
 
     def print_title(self, title):
+        size = TITLE_SIZE
+        title_width = (self.w / 2) - MARGIN_SIZE - INNER_BORDER
+
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
+        if self.get_string_width(title) > title_width:
+            size *= title_width / self.get_string_width(title)
+        
+        self.set_font(TITLE_FONT, 'B', size)
         self.cell(self.get_string_width(title), self.font_size, title, ln=2)
 
         self.set_fill_color(173, 216, 230)

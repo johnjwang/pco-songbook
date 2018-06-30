@@ -5,6 +5,7 @@ VALID_PARTS = [
     'intro',
     'verse',
     'pre-chorus',
+    'prechorus',
     'chorus',
     'bridge',
     'tag',
@@ -57,20 +58,27 @@ class Song:
         return lines
 
     @staticmethod
+    def contains_label(line):
+        for label in VALID_PARTS:
+            if len(label) <= len(line) and label == line[:len(label)].lower():
+                return True
+        return False
+
+    @staticmethod
     def chordpro_to_lines(chordpro):
         lines = chordpro.splitlines()
 
         chord_data = []
         label = ''
         chord_lyrics = []
-        for i in range(len(lines)):
-            if lines[i].split(' ')[0].lower() in VALID_PARTS:
+        for line in lines:
+            if Song.contains_label(line.strip()):
                 if chord_lyrics or label:
                     chord_data.append((label, chord_lyrics))
                 chord_lyrics = []
-                label = lines[i]
-            elif any(tag not in lines[i].lower() for tag in IGNORE_LINES):
-                chord_lyrics.append(ChordLyric(lines[i]))
+                label = line
+            elif any(tag not in line.lower() for tag in IGNORE_LINES):
+                chord_lyrics.append(ChordLyric(line))
         chord_data.append((label, chord_lyrics))
 
         return chord_data

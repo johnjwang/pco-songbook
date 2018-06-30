@@ -92,7 +92,8 @@ class SongbookPDF(fpdf.FPDF):
             else:
                 meta_text = song.author if song.author else song.copyright
             meta_width = ((self.w / 2) - MARGIN_SIZE) / 2
-            metadata_height = self.get_string_width(meta_text) / meta_width
+            metadata_height = (self.get_string_width(
+                meta_text) / meta_width) * META_SIZE
 
         song_height = (song.get_chord_lines() * CHORD_SIZE) + \
             (song.get_lyric_lines() * size) + \
@@ -114,7 +115,7 @@ class SongbookPDF(fpdf.FPDF):
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
         if self.get_string_width(title) > title_width:
             size *= title_width / self.get_string_width(title)
-        
+
         self.set_font(TITLE_FONT, 'B', size)
         self.cell(self.get_string_width(title), self.font_size, title, ln=2)
 

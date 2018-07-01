@@ -43,23 +43,20 @@ class SongbookPDF(fpdf.FPDF):
 
         if self.printing_songs:
             self.set_font(FOOTER_FONT, 'B', FOOTER_SIZE)
-            self.cell(0, self.font_size, 'Page ' + str(self.current_page), align='C')
+            self.cell(0, self.font_size, 'Page ' +
+                      str(self.current_page), align='C')
 
             permission = 'Used by permission CCLI#1194926'
             self.cell(0, self.font_size, permission, align='R')
 
     def print_table_of_contents(self):
         pages = self.organizer.pages
-
         self.add_page()
-        start_x = self.get_x()
-        start_y = self.get_y()
 
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
-        self.cell(0, TITLE_SIZE, 'Page', border='B', align='R')
-        self.set_xy(start_x, start_y)
-        self.cell(0, TITLE_SIZE, 'Table of Contents', border='B', align='C', ln=2)
-
+        self.cell(0, TITLE_SIZE, 'Table of Contents', border='B', align='C')
+        self.cell(0, TITLE_SIZE, 'Page', align='R')
+        self.ln(LYRIC_SIZE * 1.5)
 
         self.set_auto_page_break(True, MARGIN_SIZE)
         self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
@@ -68,7 +65,9 @@ class SongbookPDF(fpdf.FPDF):
                 if pages[pid][quad]:
                     self.cell(0, LYRIC_SIZE, pages[pid][quad].title)
                     self.cell(0, LYRIC_SIZE, str(pid + 1), align='R')
-                    self.ln()
+                    self.dashed_line(self.l_margin, self.get_y() + LYRIC_SIZE,
+                                     self.w - self.r_margin, self.get_y() + LYRIC_SIZE, 1, 5)
+                    self.ln(LYRIC_SIZE * 1.5)
 
         self.set_auto_page_break(False, MARGIN_SIZE)
         self.add_page()

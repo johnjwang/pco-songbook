@@ -35,14 +35,43 @@ class SongbookPDF(fpdf.FPDF):
         self.set_auto_page_break(False, MARGIN_SIZE)
 
         self.organizer = layout.SongbookOrganizer()
+        self.printing_songs = False
+        self.current_page = 0
 
     def footer(self):
         self.set_y(-15)
-        self.set_font(FOOTER_FONT, 'B', FOOTER_SIZE)
-        self.cell(0, self.font_size, 'Page ' + str(self.page_no()), align='C')
 
-        permission = 'Used by permission CCLI#1194926'
-        self.cell(0, self.font_size, permission, align='R')
+        if self.printing_songs:
+            self.set_font(FOOTER_FONT, 'B', FOOTER_SIZE)
+            self.cell(0, self.font_size, 'Page ' + str(self.current_page), align='C')
+
+            permission = 'Used by permission CCLI#1194926'
+            self.cell(0, self.font_size, permission, align='R')
+
+    def print_table_of_contents(self):
+        pages = self.organizer.pages
+
+        self.add_page()
+        start_x = self.get_x()
+        start_y = self.get_y()
+
+        self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
+        self.cell(0, TITLE_SIZE, 'Page', border='B', align='R')
+        self.set_xy(start_x, start_y)
+        self.cell(0, TITLE_SIZE, 'Table of Contents', border='B', align='C', ln=2)
+
+
+        self.set_auto_page_break(True, MARGIN_SIZE)
+        self.set_font(LYRIC_FONT, '', LYRIC_SIZE)
+        for pid in range(len(pages)):
+            for quad in range(len(pages[pid])):
+                if pages[pid][quad]:
+                    self.cell(0, LYRIC_SIZE, pages[pid][quad].title)
+                    self.cell(0, LYRIC_SIZE, str(pid + 1), align='R')
+                    self.ln()
+
+        self.set_auto_page_break(False, MARGIN_SIZE)
+        self.add_page()
 
     def get_start_point(self, quadrant):
         if quadrant is 0:  # top left
@@ -224,9 +253,13 @@ class SongbookPDF(fpdf.FPDF):
             song_sizes[song.pco_id] = size
             self.organizer.insert_song(song, overflow)
 
+        self.print_table_of_contents()
+        self.printing_songs = True
+
         # Print songs in respective locations
         for page in self.organizer.pages:
-            self.add_page()
+            self.current_page += 1
             for i in range(4):
                 if page[i]:
                     self.print_song(page[i], i, song_sizes[page[i].pco_id])
+            self.add_page()

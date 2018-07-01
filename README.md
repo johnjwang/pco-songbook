@@ -11,13 +11,14 @@ These instructions will get you a copy of the project up and running on your loc
 - [x] Parse chordpro format
 	- [x] Clean up lyrics
 	- [x] Extract chords, song structure, lyrics
+- [X] Table of Contents
 - [x] Layout chords and lyrics into two line format
 - [X] Layout song and fine tune sizes
 	- [X] Adjust width based on ratio of longest song line to the max width given to the song
 	- [X] Adjust height to fit space
 	- [X] Have a minimum font size that cannot be breached. If needs to be passed, display song on two quarters
 	- [X] Add headers/footers to songs and pages
-- [ ] Output to PDF
+- [X] Output to PDF
 
 
 ## Meta Tasks

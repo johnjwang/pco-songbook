@@ -72,6 +72,9 @@ class Song:
         label = ''
         chord_lyrics = []
         for line in lines:
+            # replace curly single/double quotes
+            line = line.replace(u"\u2018", "'").replace(u"\u2019", "'").replace(u"\u201c", '"').replace(u"\u201d", '"')
+
             line = ''.join((c for c in line if ord(c) < 128))
             if Song.contains_label(line.strip()):
                 if chord_lyrics or label:

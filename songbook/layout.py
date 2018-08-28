@@ -13,6 +13,12 @@ class SongbookOrganizer:
         }
         self.vacant = deque()
 
+    def add_until_odd_page(self):
+        self.add_page()
+
+        if len(self.pages) % 2 == 0:
+            self.add_page()
+
     def add_page(self):
         self.pages.append(dict(self.layout))
         self.vacant.clear()

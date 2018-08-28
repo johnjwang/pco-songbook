@@ -13,3 +13,6 @@
 
 # Outputs
 *.pdf
+
+# Cache
+*.cache

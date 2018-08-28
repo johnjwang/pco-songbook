@@ -262,3 +262,30 @@ class SongbookPDF(fpdf.FPDF):
                 if page[i]:
                     self.print_song(page[i], i, song_sizes[page[i].pco_id])
             self.add_page()
+
+    def print_songbook_by_letter(self, songs):
+        # Assign songs to locations
+        song_sizes = {}
+        last_song_letter = None
+        for song in songs:
+            letter_changed = last_song_letter is not None and song.title[0] != last_song_letter
+            if letter_changed:
+                self.organizer.add_until_odd_page()
+            size, overflow = self.get_size_and_overflow(song)
+            song_sizes[song.pco_id] = size
+            self.organizer.insert_song(song, overflow)
+
+            last_song_letter = song.title[0]
+
+        # TODO: don't print table of contents
+        # self.print_table_of_contents()
+        self.add_page()
+        self.printing_songs = True
+
+        # Print songs in respective locations
+        for page in self.organizer.pages:
+            self.current_page += 1
+            for i in range(4):
+                if page[i]:
+                    self.print_song(page[i], i, song_sizes[page[i].pco_id])
+            self.add_page()

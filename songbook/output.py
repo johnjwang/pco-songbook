@@ -3,6 +3,11 @@ import layout
 
 TITLE_SIZE = 12
 TITLE_FONT = 'Arial'
+START_MARGIN = 2
+
+PART_TITLE_SIZE = 7
+PART_TITLE_FONT = 'Arial'
+PART_TITLE_MARGIN = 1
 
 CHORD_SIZE = 8
 CHORD_FONT = 'Arial'
@@ -124,8 +129,9 @@ class SongbookPDF(fpdf.FPDF):
                 meta_text) / meta_width) * META_SIZE
 
         song_height = (song.get_chord_lines() * CHORD_SIZE) + \
+            (len(song.chord_chart) * (PART_TITLE_SIZE + PART_TITLE_MARGIN)) + \
             (song.get_lyric_lines() * size) + \
-            metadata_height + TITLE_SIZE
+            metadata_height + TITLE_SIZE + START_MARGIN
 
         half_height = (self.h / 2) - MARGIN_SIZE - INNER_BORDER
         overflow = song_height > half_height
@@ -149,6 +155,8 @@ class SongbookPDF(fpdf.FPDF):
 
         self.set_fill_color(173, 216, 230)
         self.cell(self.w / 2.5, CHORD_SIZE / 4, '', ln=2, fill=True)
+
+        self.set_y(self.get_y() + START_MARGIN)
 
     def print_metadata(self, title, author, copyright):
         self.set_font(META_FONT, '', META_SIZE)
@@ -217,6 +225,14 @@ class SongbookPDF(fpdf.FPDF):
 
         self.set_xy(x_start, self.get_y() + CHORD_SIZE + size)
 
+    def print_part_title(self, start, title):
+        title = title.upper()
+        self.set_x(start)
+        self.set_font(PART_TITLE_FONT, 'B', PART_TITLE_SIZE)
+        self.cell(self.get_string_width(title), self.font_size, title)
+        self.set_xy(0, self.get_y() + PART_TITLE_SIZE + PART_TITLE_MARGIN)
+        return
+
     def print_part(self, start, part, lines, size):
         if all((line.is_empty() for line in lines)):
             self.set_x(start)
@@ -227,19 +243,23 @@ class SongbookPDF(fpdf.FPDF):
                 self.set_x(start)
                 self.print_line(line, size)
 
-    def print_song(self, song, quadrant, size):
+    def print_song(self, song, quadrant, size, part_titles=False):
         x_start, y_start = self.get_start_point(quadrant)
         self.set_xy(x_start, y_start)
 
         self.print_title(song.title)
         indents = 0
         for part, lines in song.chord_chart:
-            if any(tag in part.lower() for tag in INDENT_PARTS):
-                indents += 1
-                self.print_part(
-                    x_start + (indents * INDENT_SIZE), part, lines, size)
-            else:
+            if part_titles:
+                self.print_part_title(x_start, part)
                 self.print_part(x_start, part, lines, size)
+            else:
+                if any(tag in part.lower() for tag in INDENT_PARTS):
+                    indents += 1
+                    self.print_part(
+                        x_start + (indents * INDENT_SIZE), part, lines, size)
+                else:
+                    self.print_part(x_start, part, lines, size)
 
         self.set_xy(x_start, self.get_y() + size)
         self.print_metadata(song.title, song.author, song.copyright)
@@ -277,8 +297,6 @@ class SongbookPDF(fpdf.FPDF):
 
             last_song_letter = song.title[0]
 
-        # TODO: don't print table of contents
-        # self.print_table_of_contents()
         self.add_page()
         self.printing_songs = True
 
@@ -287,5 +305,5 @@ class SongbookPDF(fpdf.FPDF):
             self.current_page += 1
             for i in range(4):
                 if page[i]:
-                    self.print_song(page[i], i, song_sizes[page[i].pco_id])
+                    self.print_song(page[i], i, song_sizes[page[i].pco_id], part_titles=True)
             self.add_page()

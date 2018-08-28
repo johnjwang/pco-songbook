@@ -5,7 +5,7 @@ TITLE_SIZE = 12
 TITLE_FONT = 'Arial'
 START_MARGIN = 2
 
-PART_TITLE_SIZE = 7
+PART_TITLE_SIZE = 9
 PART_TITLE_FONT = 'Arial'
 PART_TITLE_MARGIN = 1
 
@@ -24,6 +24,7 @@ FOOTER_FONT = 'Arial'
 GUTTER_SIZE = 15
 MARGIN_SIZE = 22.6772
 INNER_BORDER = 11.3386
+SONG_WIDTH_BUFFER = 15
 INDENT_SIZE = 8.50394
 INDENT_PARTS = [
     'pre-chorus',
@@ -55,17 +56,9 @@ class SongbookPDF(fpdf.FPDF):
             permission = 'Used by permission CCLI#1194926'
             self.cell(0, self.font_size, permission, align='R')
 
-    def add_page_with_gutter(self):
-        self.add_page()
-        next_page_odd = self.page_no() % 2 == 1
-        if next_page_odd:
-            self.set_margins(MARGIN_SIZE + GUTTER_SIZE, MARGIN_SIZE, MARGIN_SIZE - GUTTER_SIZE)
-        else:
-            self.set_margins(MARGIN_SIZE - GUTTER_SIZE, MARGIN_SIZE, MARGIN_SIZE + GUTTER_SIZE)
-
     def print_table_of_contents(self):
         pages = self.organizer.pages
-        self.add_page_with_gutter()
+        self.add_page()
 
         self.set_font(TITLE_FONT, 'B', TITLE_SIZE)
         self.cell(0, TITLE_SIZE, 'Table of Contents', border='B', align='C')
@@ -84,7 +77,7 @@ class SongbookPDF(fpdf.FPDF):
                     self.ln(LYRIC_SIZE * 1.5)
 
         self.set_auto_page_break(False, MARGIN_SIZE)
-        self.add_page_with_gutter()
+        self.add_page()
 
     def get_start_point(self, quadrant):
         odd = self.page_no() % 2 == 1
@@ -127,6 +120,9 @@ class SongbookPDF(fpdf.FPDF):
                     lyrics_size += (index_count * INDENT_SIZE)
                 if lyrics_size > song_width:
                     song_width = lyrics_size
+
+        # in case chords run beyond the lyrics
+        song_width += SONG_WIDTH_BUFFER
 
         size = LYRIC_SIZE
         max_width = (self.w / 2) - MARGIN_SIZE - INNER_BORDER
@@ -300,7 +296,7 @@ class SongbookPDF(fpdf.FPDF):
             for i in range(4):
                 if page[i]:
                     self.print_song(page[i], i, song_sizes[page[i].pco_id])
-            self.add_page_with_gutter()
+            self.add_page()
 
     def print_songbook_by_letter(self, songs):
         # Assign songs to locations
@@ -316,7 +312,7 @@ class SongbookPDF(fpdf.FPDF):
 
             last_song_letter = song.title[0]
 
-        self.add_page_with_gutter()
+        self.add_page()
         self.printing_songs = True
 
         # Print songs in respective locations
@@ -325,4 +321,4 @@ class SongbookPDF(fpdf.FPDF):
             for i in range(4):
                 if page[i]:
                     self.print_song(page[i], i, song_sizes[page[i].pco_id], part_titles=True)
-            self.add_page_with_gutter()
+            self.add_page()

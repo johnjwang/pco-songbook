@@ -88,20 +88,23 @@ class SongbookPDF(fpdf.FPDF):
 
     def get_start_point(self, quadrant):
         odd = self.page_no() % 2 == 1
-        left_edge = None
+        left_edge = MARGIN_SIZE
+        left_halfway = self.w / 2
         if odd:
-            left_edge = MARGIN_SIZE + GUTTER_SIZE
+            left_edge += GUTTER_SIZE
+            left_halfway += GUTTER_SIZE
         else:
-            left_edge = MARGIN_SIZE - GUTTER_SIZE
+            left_edge -= GUTTER_SIZE
+            left_halfway -= GUTTER_SIZE
 
         if quadrant is 0:  # top left
             return (left_edge, MARGIN_SIZE)
         elif quadrant is 1:  # top right
-            return (self.w / 2, MARGIN_SIZE)
+            return (left_halfway, MARGIN_SIZE)
         elif quadrant is 2:  # bottom left
             return (left_edge, self.h / 2)
         elif quadrant is 3:  # bottom right
-            return (self.w / 2, self.h / 2)
+            return (left_halfway, self.h / 2)
         else:
             raise ValueError('Invalid quadrant: ' + str(self.quadrant))
 

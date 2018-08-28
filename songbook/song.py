@@ -11,10 +11,12 @@ VALID_PARTS = [
     'tag',
     'interlude',
     'instrumental',
+    'vamp',
     'outro'
 ]
 IGNORE_LINES = [
-    'column_break',
+    'transpose key',
+    'column_break'
 ]
 
 # A single line of lyrics and chords in a song
@@ -28,9 +30,10 @@ class ChordLyric:
         self.chords = re.findall(CHORD_MARKER, line)
         self.lyrics = re.sub(CHORD_MARKER, '\n', line).split('\n')
 
+        # clean up HTML tag annotations in chord blocks
+        self.chords = [re.sub(r'<[/A-Za-z]+>', '', c) for c in self.chords]
     def is_empty(self):
         return not self.chords and self.lyrics == ['']
-
 
 class Song:
 
@@ -81,7 +84,7 @@ class Song:
                     chord_data.append((label, chord_lyrics))
                 chord_lyrics = []
                 label = line
-            elif any(tag not in line.lower() for tag in IGNORE_LINES):
+            elif all(tag not in line.lower() for tag in IGNORE_LINES):
                 chord_lyrics.append(ChordLyric(line))
         chord_data.append((label, chord_lyrics))
 

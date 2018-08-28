@@ -6,6 +6,26 @@ One Paragraph of project description goes here
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
+## Running It
+
+### Resources Songbook Mode
+
+```
+python songbook/__main__.py input.csv output.pdf
+```
+
+The `input.csv` can be retrieved from the "Export CSV" feature on PCO's web interface.
+
+### Band Mode
+```
+python songbook/__main__.py --band output.pdf
+```
+
+Notable differences from the resources songbook mode:
+
+- Prints by letter so that we can use this with tab dividers (skips pages until a new letter can begin on a new odd-numbered page)
+- Retrieves only non-archived songs from PCO API with song codes in the format: "A000 - Title"
+
 ## Road Map
 - [x] Retrieve chords, lyrics, metadata from API
 - [x] Parse chordpro format

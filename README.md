@@ -11,7 +11,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Resources Songbook Mode
 
 ```
-python songbook/__main__.py input.csv output.pdf
+python songbook/__main__.py --csv input.csv output.pdf
 ```
 
 The `input.csv` can be retrieved from the "Export CSV" feature on PCO's web interface.

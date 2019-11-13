@@ -10,16 +10,16 @@ import song
 def import_csv(infilename):
     songs = []
 
-    with open(infilename, 'rb') as csvfile:
+    with open(infilename, 'r') as csvfile:
         csvreader = csv.reader(csvfile)
 
         # Skip first row header
-        csvreader.next()
+        next(csvreader)
 
         for row in csvreader:
             ID = int(row[0])
             title = row[1]
-            lyrics = row[15] if row[15] else api.get_song_lyrics(ID)
+            lyrics = row[16] if row[16] else api.get_song_lyrics(ID)
             if lyrics is None:
                 print('Skipping song with no lyrics:', title)
                 continue
